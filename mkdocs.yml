@@ -68,6 +68,21 @@ extra_javascript:
   - assets/js/newtab.js
 nav:
   - Welcome: index.md
+  - New Users Guide:
+    - A New Users Guide: new_users_guide/new-users-guide.md
+    - Connecting to WiFi: new_users_guide/connecting-to-wifi.md
+    - The WLED interface: new_users_guide/the-WLED-interface.md
+    - How to Make and Use Presets: new_users_guide/how-to-make-and-use-presets.md
+    - Backup and Restore: new_users_guide/backup-restore.md
+    - Configuring Physical Buttons: new_users_guide/configuring-physical-buttons.md
+    - Scheduling Presets: new_users_guide/scheduling-presets.md
+    - Sync Two or More WLED Lights: new_users_guide/sync-two-or-more-WLED-lights.md
+    - Advanced:
+      - Advanced Settings: new_users_guide/advanced.md
+      - Other ways to sync: new_users_guide/advanced-sync.md
+      - Changing LED configuration: new_users_guide/changing-led-configuration.md
+      - Home Assistant: new_users_guide/home-assistant-integration.md
+      - Usermods: new_users_guide/usermods.md
   - Basics:
     - Getting Started: basics/getting-started.md
     - Compatibility:
