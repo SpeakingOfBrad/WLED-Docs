@@ -4,7 +4,7 @@ name: Auto-Build Documentation using MkDocs
 # events but only for the master branch
 on:
   push:
-    branches: [main]
+    branches: [new-users-guide]
 
 jobs:
   build:
