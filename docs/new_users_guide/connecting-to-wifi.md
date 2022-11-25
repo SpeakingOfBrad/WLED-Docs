@@ -5,7 +5,20 @@ hide:
   # - toc
 ---
 
-### Connecting WLED to your home Wi-Fi
+### Connecting WLED to your home Wi-Fi (using the WLED app)
+
+If you don't already have the WLED app for your phone, you can download it here:
+
+<table>
+  <tr>
+    <td><img src="../../assets/images/content/WLED-Android-qr-code.png" alt="A QR code linking to the Android app store to download the WLED app." width=150px ></td>
+    <td><img src="../../assets/images/content/WLED-Apple-qr-code.png" alt="A QR code linking to the Apple app store to download the WLED app." width=150px align=right></td>
+  </tr>
+  <tr>
+    <td><a href="https://play.google.com/store/apps/details?id=com.aircoookie.WLED">Link to Android App Store Page</a></td>
+    <td><a href="https://apps.apple.com/us/app/wled/id1475695033">Link to Apple App Store Page</a></td>
+  </tr>
+</table>
 
 1. Plug the light into power. By default the light should light up orange.
 2. On your phone/computer connect to the WiFi “**WLED-AP**” using the password **wled1234** (or you can scan the QR code at the bottom of this page.)
@@ -23,8 +36,8 @@ hide:
 
 <table>
   <tr>
-    <td> <img src="../../assets/images/content/screenshot-welcome-page-wifi-settings.jpg" alt="Screenshot of WLED app showing which button to press to get to WiFi settings." width=300px ></td>
-    <td> <img src="../../assets/images/content/screenshot-wifi-settings-ssid.jpg" alt="Screenshot of WLED app showing WiFi settings and where to input your SSID." width=300px ></td>
+    <td><img src="../../assets/images/content/WiFi-welcome-page.jpg" alt="Screenshot of WLED app showing which button to press to get to WiFi settings." width=300px ></td>
+    <td><img src="../../assets/images/content/WiFi-settings.jpg" alt="Screenshot of WLED app showing WiFi settings and where to input your SSID." width=300px ></td>
   </tr>
   <tr>
     <td>Fig 1</td>
@@ -40,7 +53,7 @@ You can scan this with your phone's camera to quickly and easily connect to the 
 
 <table>
   <tr>
-    <td><img src="../../assets/images/content/WLED-QR-Connect-WB.png" alt="QR code to scan to connect to WLED-AP." width=300px ></td>
+    <td><img src="../../assets/images/content/WLED-QR-Connect-WB.png" alt="QR code to scan to connect to WLED-AP." width=200px ></td>
   </tr>
   <tr>
     <td>SSID: WLED-AP</td>
