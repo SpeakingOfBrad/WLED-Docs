@@ -19,6 +19,7 @@ theme:
     # - navigation.expand
     - navigation.instant
     - navigation.tabs
+    - content.action.edit
     # - toc.integrate
   palette:
     - scheme: wled
@@ -95,7 +96,8 @@ nav:
     - Tutorials: basics/tutorials.md
     - FAQ: basics/faq.md
   - Features:
-    - Effects & Palettes: features/effects-palettes.md
+    - Effects: features/effects.md
+    - Palettes: features/palettes.md
     - Macros: features/macros.md
     - Presets: features/presets.md
     - Segments: features/segments.md
@@ -104,6 +106,7 @@ nav:
     - Relay Control: features/relay-control.md
     - Web GUI Sitemap: features/subpages.md
     - White handling: features/cct.md
+    - Pixel Art Converter: features/pixel-art-converter.md
   - Interfaces: 
     - Blynk: interfaces/blynk.md
     - DMX: interfaces/dmx-output.md
@@ -128,6 +131,7 @@ nav:
     - ESP32 Recovery: advanced/esp32-recovery.md
     - Mapping: advanced/mapping.md
     - Virtual LEDs: advanced/ddp.md
+    - Custom Access Point Configuration: advanced/custom-ap.md
   - About: 
     - Contributors & Credits: about/contributors.md
     - Privacy Policy: about/privacy-policy.md

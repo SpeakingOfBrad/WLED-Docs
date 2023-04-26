@@ -30,6 +30,7 @@ You may also obtain those objects individually using the URLs `/json/state` `/js
 
 Sending a POST request to `/json` or `/json/state` with (parts of) the state object will update the respective values.
 Example: `{"on":true,"bri":255}` sets the brightness to maximum. `{"seg":[{"col":[[0,255,200]]}]}` sets the color of the first segment to teal.
+`{"seg":[{"id":X,"on":"t"}]}` and replacing X with the desired segment ID will toggle on or off that segment.
 
 !!! tldr "CURL example"
     This will toggle on and off and return the new state (v0.13+):
@@ -184,6 +185,8 @@ ly | `BBBGGGRRR`: 0 - 100100100 | Loxone RGB value for secondary color. Each col
 ly | `20bbbtttt`: 200002700 - 201006500 | Loxone brightness and color temperature values for secondary color. Brightness `bbb` is specified in the range 0 to 100%. `tttt` defines the color temperature in the range from 2700 to 6500 Kelvin. _(available since 0.11.0, not included in state response)_
 i | array | [Individual LED control](#per-segment-individual-led-control). Not included in state response _(available since 0.10.2)_
 frz | bool | freezes/unfreezes the current effect
+m12 | 0 to 4 [map1D2D.count] | Setting of segment field 'Expand 1D FX'. (0: Pixels, 1: Bar, 2: Arc, 3: Corner)
+si | 0 to 3 | Setting of the sound simulation type for audio enhanced effects. (0: 'BeatSin', 1: 'WeWillRockYou', 2: '10_3', 3: '14_3') (_as of 0.14.0-b1, there are these 4 types defined_)
 
 #### Info object
 
@@ -239,27 +242,37 @@ ip | string | The IP address of this instance. Empty string if not connected. (s
 
 Using the `i` property of the segment object, you can set the LED colors in the segment using the JSON API.  
 Keep in mind that this is non-persistent, if the light is turned off the segment will return to effect mode.  
-The segment is blanked out when using individual control, the set effect will not run.   
-To disable, change any property of the segment or turn off the light.
+The segment is frozen when using individual control, the set effect will not run.   
+To unfreeze the segment, click the "eye" icon, change any property of the segment or turn off the light.
 
-To set individual LEDs starting from the beginning, use an array of Color arrays.
-`{"seg":{"i":[[255,0,0], [0,255,0], [0,0,255]]}}` will set the first LED red, the second green and the third blue.
+To set individual LEDs starting from the beginning, use an array of Color arrays `[255, 0, 0]` or hex values `"FF0000"`.
+Hex values are more efficient than Color arrays and should be preferred when setting a large number of colors.  
+`{"seg":{"i":["FF0000", "00FF00", "0000FF"]}}` or `{"seg":{"i":[[255,0,0], [0,255,0], [0,0,255]]}}` will set the first LED red, the second green and the third blue.
 
-To set individual LEDs, use the LED index followed by its Color array.
-`{"seg":{"i":[0,[255,0,0], 2,[0,255,0], 4,[0,0,255]]}}` is the same as above, but leaves blank spaces between the lit LEDs.
+To set individual LEDs, use the LED index followed by its color value.  
+`{"seg":{"i":[0,"FF0000", 2,"00FF00", 4,"0000FF"]}}` is the same as above, but leaves blank spaces between the lit LEDs.
 
-To set ranges of LEDs, use the LED start and stop index followed by its Color array.
-`{"seg":{"i":[0,8,[255,0,0], 10,18,[0,0,255]]}}` sets the first eight LEDs to red, leaves out two, and sets another 8 to blue.
+To set ranges of LEDs, use the LED start and stop index followed by its color value.  
+`{"seg":{"i":[0,8,"FF0000", 10,18,"0000FF"]}}` sets the first eight LEDs to red, leaves out two, and sets another 8 to blue.
+
+To set a large number of colors, send multiple api calls of 256 colors at a time.  
+`{"seg": {"i":[0,"CC0000", "00CC00", "0000CC", "CC0000"...]}}` 
+`{"seg": {"i":[256, "CC0000", "00CC00", "0000CC", "CC0000"...]}}`
+`{"seg": {"i":[512, "CC0000", "00CC00", "0000CC", "CC0000"...]}}`
+
+Do not make several calls in parallel, that is not optimal for the device. Instead make your call in sequence, where each call waits for the previous to complete before making a new one. How this is done depends on your choice of tool, but with CURL you que your commands by separating then with ` && ` i.e. `CURL [command 1] && CURL [command 2] && CURL [command 3]`.
+
+!!! tip "Command buffer size"
+    If you are trying to set many LEDs and it fails to work, you can check your request [here](https://arduinojson.org/v6/assistant) for length.
+    Select ESP32 and Deserialize. If the required buffer size is above 10K for ESP8266 and 24K for ESP32, please split it into multiple sequential requests and consider using the Hex string syntax.
 
 Keep in mind that the LED indices are segment-based, so LED 0 is the first LED of the segment, not of the entire strip.
 Segment features, including Grouping, Spacing, Mirroring and Reverse are functional.
-This feature is available in build 200829 and above.
+
+Matrices are handled as a non-serpentine layout.
 
 !!! info "Brightness interaction"
     For your colors to apply correctly, make sure the desired brightness is set beforehand. Turning on the LEDs from an off state and setting individual LEDs in the same JSON request will _not_ work!
-
-#### Turning Individual Segments On/Off
-Use: `{"seg":[{"id":X,"on":"t"}]}` and replace X with your desired segment.
 
 #### Playlists
 
@@ -348,6 +361,104 @@ If your code relies on absolute Kelvin values, a reasonable estimate for the war
 - A bus supporting CCT is configured and `Calculate CCT from RGB` is _not_ enabled
 
 CCT support is indicated by `info.leds.cct` being `true`, in which case you can regard the instance as a CCT light and e.g. display a color temperature control.
+
+#### Effect metadata
+
+!!! tip "Why effect metadata?"
+    Prior to 0.14, user interfaces showed Speed and Intensity slider, palette controls, and all three color slots regardless of the effect selected.
+    This may cause confusion to the user because controls are displayed that have no immediate effect in the current configuration.
+    Effect metadata allows you to dynamically hide certain controls, so that the user only sees controls actually utilized by the selected effect mode.
+
+Starting with WLED 0.14, effect metadata is available under the `/json/fxdata` URL.  
+This returns an array of strings with `info.fxcount` entries.
+The string at a given index corresponds to the metadata of the effect with the same ID as that index.
+Metadata is stored in a memory-optimized string format, for example the Aurora effect has the metadata `!,!;;!;1;sx=24,pal=50`.
+
+The metadata string consists of up to five sections, separated by semicolons:
+`<Effect parameters>;<Colors>;<Palette>;<Flags>;<Defaults>`
+
+##### Effect parameters
+
+The first section specifies the number and labels of effect parameters (e.g. speed, intensity).
+Up to 5 sliders and 3 checkboxes are supported (`sx`,`ix`,`c1`,`c2`,`c3`,`o1`,`o2`,`o3` parameters in the `seg` object).
+Slider/checkbox labels are comma separated.
+An empty or missing label disables this control.
+`!` specifies the default label is used:
+
+| Parameter | Default tooltip label
+| --- | --- |
+sx | Effect speed
+ix | Effect intensity
+c1 | Custom 1
+c2 | Custom 2
+c3 | Custom 3
+o1 | Option 1
+o2 | Option 2
+o3 | Option 3
+
+The fallback value if this section is missing is two sliders, Effect speed and Effect intensity.
+
+Examples:  
+
+| Parameter string | Displayed controls
+| --- | --- |
+`<empty>` | No effect parameters
+! | 1 slider: Effect speed
+!,! | 2 sliders: Effect speed + Effect intensity
+!,Phase | 2 sliders: Effect speed + Phase
+,Saturation,,,,Invert | 1 slider (sets `ix` parameter) and 1 checkbox: Saturation + Invert
+,,,,,Random colors | 1 checkbox: Random colors
+
+##### Colors
+
+Up to 3 colors can be used. Please note that only the first two characters of the label are visible in the WLED UI.  
+`!` specifies the default label is used. The default labels for the color slots are `Fx`, `Bg`, and `Cs`.
+
+The fallback value if this section is missing is 3 colors: `Fx` + `Bg` + `Cs`.
+
+Examples:  
+
+| Colors string | Displayed controls
+| --- | --- |
+`<empty>` | No color controls
+! | 1 color: Fx
+,! | 1 color: Bg
+!,! | 2 colors: Fx + Bg
+1,2,3 | 3 colors: 1 + 2 + 3
+
+##### Palette
+
+If empty, the effect does not use palettes. If `!`, palette selection is enabled.
+
+The fallback value if this section is missing is palette selection enabled.
+
+##### Flags
+
+Flags allow filtering for effects with certain characteristics.
+They are a single character each and not comma-separated.
+Currently, the following flags are specified:
+
+| Flag | Effect characteristic
+| --- | --- |
+0 | Effect works well on a single LED. If flag 0 is present, flags 1/2/3 are omitted. (unused)
+1 | Effect is optimized for use on 1D LED strips.
+2 | Effect requires a 2D matrix setup (unless flag 1 is also present)
+3 | Effect requires a 3D cube (unless flags 1 and/or 2 are also present) (unused)
+v | Effect is audio reactive, reacts to amplitude/volume.
+f | Effect is audio reactive, reacts to audio frequency distribution.
+
+For example, a Flag string of `2v` denotes a volume reactive effect that is to be used on 2D matrices.
+
+The fallback value if this section is missing is `1`, i.e. a 1D optimized effect.
+
+##### Defaults
+
+Defaults are values for effect parameters that work particularly well on that effect.
+They are set automatically when the effect is loaded.
+To specify defaults, use the standard segment parameter name (e.g. `ix`) followed by an `=` and the default value.
+For example, `sx=24,pal=50` sets the effect speed to 24 (slow) and the palette to ID 50 (Aurora).
+
+If no default is specified for a given parameter, it retains the current value.
 
 ### Sensors
 
